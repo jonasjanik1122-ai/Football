@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>Soccer Draw</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#087b39">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif}
+body{background:linear-gradient(#159b4d,#05612d);color:white;touch-action:none}
+#game{position:relative;width:100vw;height:100vh;overflow:hidden}
+
+#field{
+ position:absolute;inset:0;
+ background:repeating-linear-gradient(
+  90deg,rgba(255,255,255,.035) 0 8%,
+  transparent 8% 16%
+ )
+}
+
+#draw{
+ position:absolute;inset:0;width:100%;height:100%;
+ z-index:8;touch-action:none
+}
+
+#hud{
+ position:absolute;top:0;left:0;width:100%;height:70px;
+ padding:10px 14px;display:flex;
+ justify-content:space-between;align-items:center;
+ background:#0005;backdrop-filter:blur(10px);z-index:20
+}
+
+.logo{font-size:20px;font-weight:900}
+.stats{display:flex;gap:7px}
+.badge{
+ background:#ffffff18;border:1px solid #ffffff30;
+ padding:8px 11px;border-radius:13px;font-weight:bold
+}
+
+.centerLine{
+ position:absolute;left:50%;top:70px;bottom:0;
+ width:2px;background:#ffffff35
+}
+
+.centerCircle{
+ position:absolute;left:50%;top:52%;
+ width:110px;height:110px;
+ transform:translate(-50%,-50%);
+ border:2px solid #ffffff35;border-radius:50%
+}
+
+#goal{
+ position:absolute;right:3%;top:33%;
+ width:29%;height:34%;z-index:5
+}
+
+.goalNet{
+ position:absolute;inset:0;border:7px solid white;
+ background:
+ repeating-linear-gradient(0deg,transparent 0 15px,#ffffff55 16px 17px),
+ repeating-linear-gradient(90deg,transparent 0 15px,#ffffff55 16px 17px);
+ box-shadow:0 0 20px #fff8
+}
+
+.post{position:absolute;background:white}
+.post1{left:0;top:0;width:8px;height:100%}
+.post2{right:0;top:0;width:8px;height:100%}
+.post3{left:0;top:0;width:100%;height:8px}
+
+#ball{
+ position:absolute;left:12%;top:52%;
+ width:38px;height:38px;
+ transform:translate(-50%,-50%);
+ border-radius:50%;
+ background:radial-gradient(circle at 30% 25%,white,#ddd 60%,#888);
+ border:2px solid #777;
+ box-shadow:0 5px 10px #0008;
+ z-index:10
+}
+
+.obstacle{
+ position:absolute;width:48px;height:48px;
+ border-radius:12px;
+ background:linear-gradient(145deg,#ff5555,#a90028);
+ border:3px solid white;
+ box-shadow:0 6px 12px #0008;
+ z-index:7
+}
+
+.obstacle.wall{
+ width:70px;height:25px;border-radius:7px
+}
+
+#hint{
+ position:absolute;left:50%;bottom:20px;
+ transform:translateX(-50%);
+ background:#0009;padding:11px 18px;
+ border-radius:30px;z-index:15;
+ font-size:14px;font-weight:bold;
+ white-space:nowrap
+}
+
+.screen{
+ position:absolute;inset:0;z-index:100;
+ display:flex;align-items:center;justify-content:center;
+ padding:20px;background:#021f12dd;
+ backdrop-filter:blur(14px)
+}
+
+.panel{
+ width:min(440px,94vw);padding:30px 22px;
+ text-align:center;border-radius:28px;
+ background:linear-gradient(145deg,#ffffff25,#ffffff0d);
+ border:1px solid #ffffff30;
+ box-shadow:0 25px 70px #0009
+}
+
+.football{font-size:65px}
+h1{margin:5px 0;font-size:34px}
+.subtitle{opacity:.75;margin:8px 0 25px}
+
+.mainBtn{
+ width:100%;border:0;padding:15px;
+ border-radius:16px;font-size:18px;
+ font-weight:900;
+ background:linear-gradient(135deg,#ffe600,#ffad00);
+ color:#111;cursor:pointer
+}
+
+.secondary{
+ margin-top:12px;
+ background:#ffffff18;
+ color:white
+}
+
+.levelGrid{
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ gap:8px;margin:20px 0
+}
+
+.level{
+ aspect-ratio:1;border:0;border-radius:14px;
+ background:#ffffff15;color:white;
+ font-size:16px;font-weight:bold
+}
+
+.level.unlocked{background:#119b4c}
+.level.locked{opacity:.4}
+
+#win{display:none}
+
+.stars{
+ font-size:30px;margin:12px;
+ letter-spacing:5px
+}
+
+#loading{
+ position:absolute;inset:0;z-index:200;
+ display:flex;align-items:center;justify-content:center;
+ background:#075b2d
+}
+
+.loader{font-size:50px}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<div id="loading">
+ <div class="loader">⚽</div>
+</div>
+
+<div id="field"></div>
+<div class="centerLine"></div>
+<div class="centerCircle"></div>
+
+<div id="hud">
+ <div class="logo">⚽ SOCCER DRAW</div>
+ <div class="stats">
+  <div class="badge" id="levelText">Level 1</div>
+  <div class="badge" id="starText">⭐ 0</div>
+ </div>
+</div>
+
+<div id="goal">
+ <div class="goalNet"></div>
+ <div class="post post1"></div>
+ <div class="post post2"></div>
+ <div class="post post3"></div>
+</div>
+
+<canvas id="draw"></canvas>
+
+<div id="ball"></div>
+
+<div id="hint">✏️ Zeichne eine Linie zum Tor</div>
+
+<!-- HAUPTMENÜ -->
+<div class="screen" id="startScreen">
+ <div class="panel">
+  <div class="football">⚽</div>
+  <h1>SOCCER DRAW</h1>
+  <div class="subtitle">
+   Zeichne deinen Schuss und triff das Tor!
+  </div>
+
+  <button class="mainBtn" id="playBtn">
+   ▶ SPIELEN
+  </button>
+
+  <button class="mainBtn secondary" id="levelsBtn">
+   🗺️ LEVEL
+  </button>
+ </div>
+</div>
+
+<!-- LEVEL -->
+<div class="screen" id="levelScreen" style="display:none">
+ <div class="panel">
+  <h1>🗺️ LEVEL</h1>
+  <div class="subtitle">Wähle dein Level</div>
+
+  <div class="levelGrid" id="levelGrid"></div>
+
+  <button class="mainBtn secondary" id="backBtn">
+   🏠 HAUPTMENÜ
+  </button>
+ </div>
+</div>
+
+<!-- GEWONNEN -->
+<div class="screen" id="winScreen">
+ <div class="panel">
+  <div class="football">🥅</div>
+  <h1>TOR!</h1>
+
+  <div class="stars" id="winStars">⭐⭐⭐</div>
+
+  <p id="winText">Perfekter Schuss!</p>
+
+  <button class="mainBtn" id="nextBtn">
+   NÄCHSTES LEVEL ▶
+  </button>
+
+  <button class="mainBtn secondary" id="menuBtn">
+   🏠 HAUPTMENÜ
+  </button>
+ </div>
+</div>
+
+</div>
+
+<script>
+const draw=document.getElementById("draw");
+const ctx=draw.getContext("2d");
+
+const ball=document.getElementById("ball");
+const goal=document.getElementById("goal");
+const hint=document.getElementById("hint");
+
+const startScreen=document.getElementById("startScreen");
+const levelScreen=document.getElementById("levelScreen");
+const winScreen=document.getElementById("winScreen");
+
+let level=1;
+let maxLevel=parseInt(localStorage.getItem("maxLevel")||"1");
+let totalStars=parseInt(localStorage.getItem("stars")||"0");
+
+let drawing=false;
+let shooting=false;
+let path=[];
+let obstacles=[];
+
+const levels={
+1:[],
+2:[["wall",.47,.45]],
+3:[["wall",.45,.35],["wall",.62,.62]],
+4:[["normal",.42,.35],["normal",.58,.55],["normal",.68,.35]],
+5:[["wall",.38,.32],["normal",.52,.57],["wall",.68,.34]],
+6:[["normal",.34,.30],["wall",.48,.46],["normal",.60,.30],["wall",.68,.55]],
+7:[["normal",.35,.38],["normal",.48,.58],["normal",.60,.38],["normal",.72,.57]],
+8:[["wall",.45,.32],["wall",.45,.67],["normal",.66,.48]],
+9:[["normal",.34,.35],["wall",.47,.52],["normal",.58,.31],["wall",.68,.57]],
+10:[["wall",.32,.31],["normal",.43,.60],["normal",.54,.35],["wall",.64,.62]]
+};
+
+function save(){
+ localStorage.setItem("maxLevel",maxLevel);
+ localStorage.setItem("stars",totalStars);
+}
+
+function resize(){
+ draw.width=innerWidth;
+ draw.height=innerHeight;
+}
+addEventListener("resize",resize);
+resize();
+
+function clearObstacles(){
+ obstacles.forEach(x=>x.remove());
+ obstacles=[];
+}
+
+function setupObstacles(){
+ clearObstacles();
+
+ (levels[level]||[]).forEach(data=>{
+  const o=document.createElement("div");
+
+  o.className="obstacle"+
+   (data[0]==="wall"?" wall":"");
+
+  o.style.left=(innerWidth*data[1])+"px";
+  o.style.top=(innerHeight*data[2])+"px";
+
+  document.getElementById("game").appendChild(o);
+  obstacles.push(o);
+ });
+}
+
+function resetBall(){
+ ball.style.left="12%";
+ ball.style.top="52%";
+}
+
+function startLevel(){
+ startScreen.style.display="none";
+ levelScreen.style.display="none";
+ winScreen.style.display="none";
+
+ shooting=false;
+ path=[];
+
+ clearObstacles();
+ setupObstacles();
+ resetBall();
+
+ document.getElementById("levelText").textContent=
+  "Level "+level;
+
+ document.getElementById("starText").textContent=
+  "⭐ "+totalStars;
+
+ ctx.clearRect(0,0,draw.width,draw.height);
+
+ hint.textContent="✏️ Zeichne eine Linie zum Tor";
+}
+
+function position(e){
+ return{x:e.clientX,y:e.clientY};
+}
+
+draw.addEventListener("pointerdown",e=>{
+ if(shooting)return;
+ if(winScreen.style.display!=="none")return;
+
+ drawing=true;
+ path=[position(e)];
+ ctx.clearRect(0,0,draw.width,draw.height);
+});
+
+draw.addEventListener("pointermove",e=>{
+ if(!drawing)return;
+
+ path.push(position(e));
+
+ ctx.clearRect(0,0,draw.width,draw.height);
+ ctx.beginPath();
+
+ ctx.moveTo(path[0].x,path[0].y);
+
+ for(const p of path)
+  ctx.lineTo(p.x,p.y);
+
+ ctx.strokeStyle="#ffe600";
+ ctx.lineWidth=7;
+ ctx.lineCap="round";
+ ctx.lineJoin="round";
+ ctx.shadowBlur=12;
+ ctx.shadowColor="#ffe600";
+ ctx.stroke();
+ ctx.shadowBlur=0;
+});
+
+draw.addEventListener("pointerup",()=>{
+ if(!drawing)return;
+
+ drawing=false;
+
+ if(path.length>4)
+  shoot();
+});
+
+function shoot(){
+
+ shooting=true;
+ hint.textContent="⚽ SCHUSS!";
+
+ let i=0;
+
+ function move(){
+
+  if(i>=path.length){
+   checkGoal();
+   return;
+  }
+
+  const p=path[i++];
+
+  ball.style.left=p.x+"px";
+  ball.style.top=p.y+"px";
+
+  if(hitObstacle()){
+   hint.textContent="💥 MAUER!";
+   setTimeout(resetShot,700);
+   return;
+  }
+
+  requestAnimationFrame(move);
+ }
+
+ requestAnimationFrame(move);
+}
+
+function hitObstacle(){
+
+ const b=ball.getBoundingClientRect();
+
+ for(const o of obstacles){
+
+  const r=o.getBoundingClientRect();
+
+  if(
+   b.right>r.left &&
+   b.left<r.right &&
+   b.bottom>r.top &&
+   b.top<r.bottom
+  )return true;
+ }
+
+ return false;
+}
+
+function checkGoal(){
+
+ const b=ball.getBoundingClientRect();
+ const g=goal.getBoundingClientRect();
+
+ if(
+  b.right>g.left+5 &&
+  b.left<g.right-5 &&
+  b.bottom>g.top+5 &&
+  b.top<g.bottom-5
+ ){
+  win();
+ }else{
+  hint.textContent="❌ DANEBEN!";
+  setTimeout(resetShot,700);
+ }
+}
+
+function resetShot(){
+
+ shooting=false;
+ resetBall();
+
+ ctx.clearRect(0,0,draw.width,draw.height);
+
+ hint.textContent="✏️ Zeichne eine Linie zum Tor";
+}
+
+function win(){
+
+ shooting=false;
+
+ let earned=3;
+
+ if(path.length>120)earned=2;
+ if(path.length>220)earned=1;
+
+ totalStars+=earned;
+
+ if(level>=maxLevel && maxLevel<10)
+  maxLevel=level+1;
+
+ save();
+
+ document.getElementById("winStars").textContent=
+  "⭐".repeat(earned);
+
+ document.getElementById("winText").textContent=
+  earned===3
+  ?"Perfekter Schuss! 🔥"
+  :earned===2
+  ?"Guter Schuss! 👍"
+  :"Tor! ⚽";
+
+ document.getElementById("starText").textContent=
+  "⭐ "+totalStars;
+
+ winScreen.style.display="flex";
+
+ createLevelButtons();
+}
+
+function createLevelButtons(){
+
+ const grid=document.getElementById("levelGrid");
+ grid.innerHTML="";
+
+ for(let i=1;i<=10;i++){
+
+  const b=document.createElement("button");
+
+  b.className="level";
+
+  if(i<=maxLevel){
+   b.classList.add("unlocked");
+   b.textContent=i;
+   b.onclick=()=>{
+    level=i;
+    startLevel();
+   };
+  }else{
+   b.classList.add("locked");
+   b.textContent="🔒";
+  }
+
+  grid.appendChild(b);
+ }
+}
+
+document.getElementById("playBtn").onclick=()=>{
+ level=maxLevel;
+ startLevel();
+};
+
+document.getElementById("levelsBtn").onclick=()=>{
+ startScreen.style.display="none";
+ levelScreen.style.display="flex";
+ createLevelButtons();
+};
+
+document.getElementById("backBtn").onclick=()=>{
+ levelScreen.style.display="none";
+ startScreen.style.display="flex";
+};
+
+document.getElementById("menuBtn").onclick=()=>{
+ winScreen.style.display="none";
+ startScreen.style.display="flex";
+};
+
+document.getElementById("nextBtn").onclick=()=>{
+ if(level<10){
+  level++;
+  startLevel();
+ }else{
+  alert("🏆 Du hast alle Level geschafft!");
+  winScreen.style.display="none";
+  startScreen.style.display="flex";
+ }
+};
+
+resetBall();
+
+setTimeout(()=>{
+ document.getElementById("loading").style.display="none";
+},500);
+</script>
+
+<script>
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("./sw.js")
+   .catch(()=>{});
+ });
+}
+</script>
+
+</body>
+</html>
