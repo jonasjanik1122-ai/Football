@@ -14,25 +14,22 @@ body{
 font-family:Arial,sans-serif;
 background:#07130d;
 color:white;
-min-height:100vh;
 text-align:center;
-overflow:hidden
+min-height:100vh;
+overflow:hidden;
+touch-action:none
 }
 
 .screen{
 display:none;
 min-height:100vh;
-padding:25px
+padding:20px
 }
 
 .active{display:block}
 
-h1{
-font-size:38px;
-margin:35px 0 15px
-}
-
-h2{margin:20px}
+h1{font-size:38px;margin:35px 0 15px}
+h2{margin:15px}
 
 button{
 border:0;
@@ -42,100 +39,102 @@ margin:7px;
 font-size:17px;
 font-weight:bold;
 background:#20d66b;
-color:#031008;
-cursor:pointer
-}
-
-button:active{
-transform:scale(.96)
+color:#031008
 }
 
 .top{
 display:flex;
 justify-content:space-around;
 font-size:18px;
-margin:15px
+margin:10px
 }
 
+/* LEVEL */
 .levels{
 display:grid;
 grid-template-columns:repeat(4,1fr);
-gap:8px;
+gap:7px;
 max-width:600px;
-margin:20px auto;
-max-height:65vh;
+margin:15px auto;
+max-height:70vh;
 overflow:auto
 }
 
 .level{
-padding:15px 5px;
 background:#12251a;
-color:white
+color:white;
+padding:13px 4px
 }
 
 .locked{
-opacity:.35
+opacity:.3
 }
 
+/* SPIELFELD */
 #field{
 position:relative;
-height:62vh;
-max-width:600px;
+width:100%;
+max-width:700px;
+height:65vh;
 margin:auto;
-background:#159447;
+background:
+repeating-linear-gradient(
+90deg,
+#159447 0,
+#159447 50px,
+#12843f 50px,
+#12843f 100px
+);
 border:5px solid white;
 border-radius:18px;
 overflow:hidden
 }
 
-.goal{
+/* TOR RECHTS */
+#goal{
 position:absolute;
-top:15px;
-left:20%;
-width:60%;
-height:60px;
-border:5px solid white;
-font-size:35px
+right:8px;
+top:35%;
+width:85px;
+height:30%;
+border:6px solid white;
+border-right:0;
+font-size:38px;
+display:flex;
+align-items:center;
+justify-content:center
 }
 
+/* BALL LINKS */
 #ball{
 position:absolute;
-bottom:35px;
-left:calc(50% - 25px);
-font-size:50px;
-transition:.35s
-}
-
-#target{
-position:absolute;
+left:25px;
+top:50%;
 font-size:45px;
-transition:.2s
+transform:translateY(-50%);
+z-index:5
 }
 
-#msg{
-font-size:22px;
-margin:12px
+/* LINIE */
+#line{
+position:absolute;
+left:0;
+top:0;
+width:100%;
+height:100%;
+z-index:4
 }
 
-#admin{
-text-align:center;
-max-width:600px;
-margin:auto
+/* HINDERNISSE */
+.obstacle{
+position:absolute;
+font-size:42px;
+z-index:3
 }
 
-.adminbox{
-background:#12251a;
-padding:15px;
-border-radius:12px;
-margin:10px 0
-}
-
-input{
-padding:13px;
-border-radius:10px;
-border:0;
-margin:7px;
-font-size:16px
+#message{
+font-size:21px;
+margin:10px
 }
 </style>
 </head>
@@ -147,18 +146,18 @@ font-size:16px
 
 <h1>⚽ Soccer Challenge</h1>
 
-<p>Schaffe alle 1000 Level!</p>
+<p>1000 Level warten auf dich!</p>
 
 <br>
 
 <button onclick="openLevels()">
-▶ Spielen
+▶ SPIELEN
 </button>
 
 <br>
 
 <button onclick="openAdmin()">
-🔐 Admin
+🔐 ADMIN
 </button>
 
 </section>
@@ -167,7 +166,7 @@ font-size:16px
 <!-- LEVELAUSWAHL -->
 <section id="levels" class="screen">
 
-<h2>🏆 Level auswählen</h2>
+<h2>🏆 LEVEL</h2>
 
 <div id="levelList" class="levels"></div>
 
@@ -188,7 +187,7 @@ Level <b id="levelText">1</b>
 </span>
 
 <span>
-⚽ <b id="score">0</b>
+⭐ <b id="score">0</b>
 </span>
 
 <span>
@@ -197,31 +196,22 @@ Level <b id="levelText">1</b>
 
 </div>
 
-
 <div id="field">
 
-<div class="goal">
-🥅
-</div>
+<div id="goal">🥅</div>
 
-<div id="target">
-🎯
-</div>
+<div id="ball">⚽</div>
 
-<div id="ball">
-⚽
-</div>
+<canvas id="line"></canvas>
 
 </div>
 
-
-<div id="msg">
-Schieße ins Ziel!
+<div id="message">
+Zeichne eine Linie zum Tor!
 </div>
 
-
-<button onclick="shoot()">
-⚽ SCHIESSEN
+<button onclick="resetShot()">
+🔄 Neu
 </button>
 
 <button onclick="show('levels')">
@@ -231,11 +221,10 @@ Schieße ins Ziel!
 </section>
 
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN -->
 <section id="admin" class="screen">
 
-<h2>🔐 Admin Panel</h2>
-
+<h2>🔐 Admin</h2>
 
 <div id="login">
 
@@ -243,6 +232,7 @@ Schieße ins Ziel!
 id="password"
 type="password"
 placeholder="Admin-Passwort"
+style="padding:12px;border-radius:10px;border:0"
 >
 
 <br>
@@ -253,36 +243,14 @@ Einloggen
 
 </div>
 
-
 <div id="adminContent" style="display:none">
 
-<div class="adminbox">
+<p>Dein gespeichertes Level:</p>
 
-<h3>📊 Spielstatistik</h3>
-
-<p>
-Spieler: <b id="players">1</b>
-</p>
-
-<p>
-Aktuelles Level:
-<b id="adminLevel">1</b>
-</p>
-
-<p>
-Höchstes Level:
-<b id="maxLevel">1</b>
-</p>
-
-</div>
-
-
-<div class="adminbox">
-
-<h3>⚙️ Einstellungen</h3>
+<h2 id="adminLevel">1</h2>
 
 <button onclick="resetGame()">
-Spielstand zurücksetzen
+🔄 Spielstand zurücksetzen
 </button>
 
 <br>
@@ -293,119 +261,186 @@ Spielstand zurücksetzen
 
 </div>
 
-</div>
-
 </section>
 
 
-<script>
+<script type="module">
 
-/* =========================
-   EINSTELLUNGEN
-========================= */
+/* =================================
+   FIREBASE
+================================= */
 
-const MAX_LEVEL = 1000;
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
 
-/* ADMIN PASSWORT */
+import {
+getDatabase,
+ref,
+set,
+get
+}
+from "https://www.gstatic.com/firebasejs/12.17.0/firebase-database.js";
 
-const ADMIN_PASSWORD = "1233";
+
+const firebaseConfig={
+
+apiKey:"AIzaSyB9JbpYKnTvBRmIvG5g0s1K6SDeVnC2wi4",
+
+authDomain:"soccergame-3e8e5.firebaseapp.com",
+
+projectId:"soccergame-3e8e5",
+
+storageBucket:"soccergame-3e8e5.firebasestorage.app",
+
+messagingSenderId:"410350098489",
+
+appId:"1:410350098489:web:b2f76518d8e55a51c395e8",
+
+measurementId:"G-9X44KJK0P1"
+
+};
 
 
-/* =========================
+const app=initializeApp(firebaseConfig);
+
+const db=getDatabase(app);
+
+
+/* =================================
+   SPIELER-ID
+================================= */
+
+let playerId=
+localStorage.getItem("soccerPlayerId");
+
+if(!playerId){
+
+playerId=
+"player_"+crypto.randomUUID();
+
+localStorage.setItem(
+"soccerPlayerId",
+playerId
+);
+
+}
+
+
+/* =================================
    SPIELDATEN
-========================= */
+================================= */
 
-let level =
-Number(localStorage.getItem("level") || 1);
+const MAX_LEVEL=1000;
 
-let score = 0;
+let level=
+Number(localStorage.getItem("level")||1);
 
-let time = 30;
+let score=0;
 
-let timer = null;
+let time=30;
 
-let playing = false;
+let timer;
 
+let drawing=false;
 
-/* =========================
-   KURZ-FUNKTION
-========================= */
-
-const $ = id =>
-document.getElementById(id);
+let points=[];
 
 
-/* =========================
-   SCREEN WECHSELN
-========================= */
+/* =================================
+   ELEMENTE
+================================= */
 
-function show(id){
+const field=
+document.getElementById("field");
+
+const canvas=
+document.getElementById("line");
+
+const ctx=
+canvas.getContext("2d");
+
+
+function resizeCanvas(){
+
+canvas.width=field.clientWidth;
+
+canvas.height=field.clientHeight;
+
+}
+
+resizeCanvas();
+
+window.addEventListener(
+"resize",
+resizeCanvas
+);
+
+
+/* =================================
+   SCREEN
+================================= */
+
+window.show=function(id){
 
 document
 .querySelectorAll(".screen")
-.forEach(x =>
-x.classList.remove("active")
+.forEach(s=>
+s.classList.remove("active")
 );
 
-$(id).classList.add("active");
+document
+.getElementById(id)
+.classList.add("active");
 
-if(id !== "gameScreen"){
+if(id!=="gameScreen"){
 
 clearInterval(timer);
 
-playing = false;
-
 }
 
-}
+};
 
 
-/* =========================
-   LEVEL ÖFFNEN
-========================= */
+/* =================================
+   LEVEL
+================================= */
 
-function openLevels(){
+window.openLevels=function(){
 
 show("levels");
 
 createLevels();
 
-}
+};
 
-
-/* =========================
-   1000 LEVEL ERSTELLEN
-========================= */
 
 function createLevels(){
 
-let box = $("levelList");
+const box=
+document.getElementById("levelList");
 
-box.innerHTML = "";
+box.innerHTML="";
 
+for(let i=1;i<=MAX_LEVEL;i++){
 
-for(let i = 1; i <= MAX_LEVEL; i++){
-
-let b =
+const b=
 document.createElement("button");
 
-b.className = "level";
+b.className="level";
 
+if(i<=level){
 
-if(i > level){
+b.textContent="⚽ "+i;
 
-b.classList.add("locked");
-
-b.textContent = "🔒 " + i;
-
-b.disabled = true;
+b.onclick=()=>startLevel(i);
 
 }else{
 
-b.textContent = "⚽ " + i;
+b.textContent="🔒 "+i;
 
-b.onclick = () =>
-startLevel(i);
+b.classList.add("locked");
+
+b.disabled=true;
 
 }
 
@@ -416,61 +451,63 @@ box.appendChild(b);
 }
 
 
-/* =========================
-   LEVEL STARTEN
-========================= */
+/* =================================
+   LEVEL START
+================================= */
 
 function startLevel(l){
 
-level = l;
+level=l;
 
-score = 0;
+score=0;
 
-/* Je höher das Level,
-   desto weniger Zeit */
-
-time =
+time=
 Math.max(
 8,
-32 - Math.floor(l / 50)
+35-Math.floor(level/40)
 );
 
+document.getElementById(
+"levelText"
+).textContent=level;
 
-$("levelText").textContent =
-level;
+document.getElementById(
+"score"
+).textContent=score;
 
-$("score").textContent =
-score;
+document.getElementById(
+"time"
+).textContent=time;
 
-$("time").textContent =
-time;
-
-$("msg").textContent =
-"Schieße ins Ziel!";
-
+document.getElementById(
+"message"
+).textContent=
+"Zeichne eine Linie zum Tor!";
 
 show("gameScreen");
 
-playing = true;
+createObstacles();
 
-moveTarget();
+resetShot();
 
 clearInterval(timer);
 
-
-timer = setInterval(() => {
-
-if(!playing) return;
+timer=setInterval(()=>{
 
 time--;
 
-$("time").textContent =
-time;
+document.getElementById(
+"time"
+).textContent=time;
 
+if(time<=0){
 
-if(time <= 0){
+clearInterval(timer);
 
-lose();
+document.getElementById(
+"message"
+).textContent=
+"⏰ Zeit abgelaufen!";
 
 }
 
@@ -479,110 +516,260 @@ lose();
 }
 
 
-/* =========================
-   ZIEL BEWEGEN
-========================= */
+/* =================================
+   HINDERNISSE
+================================= */
 
-function moveTarget(){
+function createObstacles(){
 
-let target =
-$("target");
+document
+.querySelectorAll(".obstacle")
+.forEach(x=>x.remove());
 
-target.style.left =
-(5 + Math.random() * 80) + "%";
+let amount=
+Math.min(
+15,
+2+Math.floor(level/70)
+);
 
-target.style.top =
-(80 + Math.random() * 180) + "px";
+for(let i=0;i<amount;i++){
+
+let obstacle=
+document.createElement("div");
+
+obstacle.className="obstacle";
+
+obstacle.textContent="🧱";
+
+obstacle.style.left=
+(15+Math.random()*65)+"%";
+
+obstacle.style.top=
+(10+Math.random()*75)+"%";
+
+field.appendChild(obstacle);
+
+}
 
 }
 
 
-/* =========================
-   SCHUSS
-========================= */
+/* =================================
+   ZEICHNEN
+================================= */
 
-function shoot(){
+function getPosition(e){
 
-if(!playing) return;
+const rect=
+canvas.getBoundingClientRect();
 
-let ball =
-$("ball");
+const touch=
+e.touches ? e.touches[0] : e;
+
+return{
+
+x:touch.clientX-rect.left,
+
+y:touch.clientY-rect.top
+
+};
+
+}
 
 
-ball.style.bottom =
-"70%";
+canvas.addEventListener(
+"pointerdown",
+e=>{
 
+drawing=true;
 
-setTimeout(() => {
+points=[];
 
-let chance =
-Math.max(
-.35,
-.85 - level / 1500
+const p=getPosition(e);
+
+points.push(p);
+
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+}
 );
 
 
-if(Math.random() < chance){
+canvas.addEventListener(
+"pointermove",
+e=>{
+
+if(!drawing)return;
+
+const p=getPosition(e);
+
+points.push(p);
+
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+ctx.beginPath();
+
+ctx.moveTo(
+points[0].x,
+points[0].y
+);
+
+for(let i=1;i<points.length;i++){
+
+ctx.lineTo(
+points[i].x,
+points[i].y
+);
+
+}
+
+ctx.strokeStyle="#ffffff";
+
+ctx.lineWidth=7;
+
+ctx.lineCap="round";
+
+ctx.stroke();
+
+}
+);
+
+
+canvas.addEventListener(
+"pointerup",
+()=>{
+
+if(!drawing)return;
+
+drawing=false;
+
+checkShot();
+
+}
+);
+
+
+/* =================================
+   SCHUSS PRÜFEN
+================================= */
+
+function checkShot(){
+
+if(points.length<10){
+
+document.getElementById(
+"message"
+).textContent=
+"✏️ Zeichne eine längere Linie!";
+
+return;
+
+}
+
+const end=
+points[points.length-1];
+
+const goalX=
+canvas.width-80;
+
+const goalTop=
+canvas.height*.35;
+
+const goalBottom=
+canvas.height*.65;
+
+
+/* Tor getroffen? */
+
+if(
+end.x>goalX &&
+end.y>goalTop &&
+end.y<goalBottom
+){
 
 score++;
 
-$("score").textContent =
-score;
+document.getElementById(
+"score"
+).textContent=score;
 
-$("msg").textContent =
-"⚽ TOR!";
+document.getElementById(
+"message"
+).textContent=
+"⚽ TOOOOR!";
+
+saveGame();
+
+setTimeout(()=>{
+
+if(score>=getNeededGoals()){
+
+nextLevel();
+
+}else{
+
+resetShot();
+
+}
+
+},700);
+
+}else{
+
+document.getElementById(
+"message"
+).textContent=
+"❌ Linie erreicht das Tor nicht!";
+
+}
+
+}
 
 
-/* Je 250 Level
-   wird es schwieriger */
+function getNeededGoals(){
 
-let needed =
-Math.min(
+return Math.min(
 3,
-1 + Math.floor(level / 250)
+1+Math.floor(level/250)
 );
 
-
-if(score >= needed){
-
-win();
-
-}else{
-
-moveTarget();
-
-ball.style.bottom =
-"35px";
-
-}
-
-}else{
-
-$("msg").textContent =
-"❌ Daneben!";
-
-ball.style.bottom =
-"35px";
-
-}
-
-},350);
-
 }
 
 
-/* =========================
-   LEVEL GESCHAFFT
-========================= */
+/* =================================
+   NEUER SCHUSS
+================================= */
 
-function win(){
+window.resetShot=function(){
 
-playing = false;
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+points=[];
+
+};
+
+
+/* =================================
+   NÄCHSTES LEVEL
+================================= */
+
+function nextLevel(){
 
 clearInterval(timer);
 
-
-if(level < MAX_LEVEL){
+if(level<MAX_LEVEL){
 
 level++;
 
@@ -591,19 +778,24 @@ localStorage.setItem(
 level
 );
 
-$("msg").textContent =
+saveGame();
+
+document.getElementById(
+"message"
+).textContent=
 "🏆 Level geschafft!";
 
-
-setTimeout(() => {
+setTimeout(()=>{
 
 startLevel(level);
 
-},900);
+},800);
 
 }else{
 
-$("msg").textContent =
+document.getElementById(
+"message"
+).textContent=
 "👑 ALLE 1000 LEVEL GESCHAFFT!";
 
 }
@@ -611,91 +803,157 @@ $("msg").textContent =
 }
 
 
-/* =========================
-   VERLOREN
-========================= */
+/* =================================
+   FIREBASE SPEICHERN
+================================= */
 
-function lose(){
+async function saveGame(){
 
-playing = false;
+try{
 
-clearInterval(timer);
+await set(
+ref(db,"players/"+playerId),
+{
 
-$("msg").textContent =
-"⏰ Zeit abgelaufen!";
+level:level,
+
+score:score,
+
+updatedAt:Date.now()
+
+}
+
+);
+
+}catch(error){
+
+console.error(
+"Firebase Fehler:",
+error
+);
+
+}
 
 }
 
 
-/* =========================
-   ADMIN ÖFFNEN
-========================= */
+/* =================================
+   FIREBASE LADEN
+================================= */
 
-function openAdmin(){
+async function loadGame(){
+
+try{
+
+const snapshot=
+await get(
+ref(db,"players/"+playerId)
+);
+
+if(snapshot.exists()){
+
+const data=snapshot.val();
+
+if(data.level){
+
+level=
+Math.max(
+1,
+Math.min(
+MAX_LEVEL,
+Number(data.level)
+)
+);
+
+localStorage.setItem(
+"level",
+level
+);
+
+}
+
+}
+
+}catch(error){
+
+console.error(
+"Firebase Laden:",
+error
+);
+
+}
+
+}
+
+
+/* =================================
+   ADMIN
+================================= */
+
+window.openAdmin=function(){
 
 show("admin");
 
-}
+};
 
 
-/* =========================
-   ADMIN LOGIN
-========================= */
+window.login=function(){
 
-function login(){
+/*
+Für den endgültigen Release
+kommt hier Firebase Authentication hin.
+*/
 
-let password =
-$("password").value;
+const password=
+document.getElementById(
+"password"
+).value;
 
+if(password==="1233"){
 
-if(password === ADMIN_PASSWORD){
+document.getElementById(
+"login"
+).style.display="none";
 
-$("login").style.display =
-"none";
+document.getElementById(
+"adminContent"
+).style.display="block";
 
-$("adminContent").style.display =
-"block";
-
-
-$("adminLevel").textContent =
-level;
-
-$("maxLevel").textContent =
-localStorage.getItem("level") || 1;
-
+document.getElementById(
+"adminLevel"
+).textContent=level;
 
 }else{
 
 alert(
-"❌ Falsches Admin-Passwort"
+"❌ Falsches Passwort"
 );
 
 }
 
-}
+};
 
 
-/* =========================
-   SPIELSTAND LÖSCHEN
-========================= */
-
-function resetGame(){
+window.resetGame=function(){
 
 if(confirm(
-"Spielstand wirklich löschen?"
+"Spielstand wirklich zurücksetzen?"
 )){
 
-localStorage.removeItem(
-"level"
+level=1;
+
+score=0;
+
+localStorage.setItem(
+"level",
+1
 );
 
-level = 1;
+saveGame();
 
-$("adminLevel").textContent =
-1;
-
-$("maxLevel").textContent =
-1;
+document.getElementById(
+"adminLevel"
+).textContent=1;
 
 alert(
 "✅ Spielstand zurückgesetzt!"
@@ -703,57 +961,21 @@ alert(
 
 }
 
-}
+};
 
 
-/* =========================
-   PWA SERVICE WORKER
-========================= */
-
-if("serviceWorker" in navigator){
-
-navigator.serviceWorker.register(
-"sw.js"
-);
-
-}
-
-
-/* =========================
-   FULLSCREEN
-========================= */
-
-function fullscreen(){
-
-if(
-document.documentElement.requestFullscreen &&
-!document.fullscreenElement
-){
-
-document.documentElement
-.requestFullscreen()
-.catch(() => {});
-
-}
-
-}
-
-
-/* Beim ersten Tippen
-   Fullscreen versuchen */
-
-document.addEventListener(
-"click",
-fullscreen,
-{once:true}
-);
-
-
-/* =========================
+/* =================================
    START
-========================= */
+================================= */
+
+await loadGame();
 
 createLevels();
+
+console.log(
+"⚽ Soccer gestartet",
+playerId
+);
 
 </script>
 
