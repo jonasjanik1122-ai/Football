@@ -4,178 +4,757 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#07130d">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<title>Soccer Levels ⚽</title>
+<link rel="manifest" href="manifest.json">
+<title>Soccer Challenge ⚽</title>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial;background:#07130d;color:white;text-align:center;min-height:100vh;overflow:hidden}
-header{background:#0b2417;padding:15px;font-size:24px;font-weight:bold;color:#20d66b}
-.screen{display:none;min-height:calc(100vh - 60px);padding:25px}
+
+body{
+font-family:Arial,sans-serif;
+background:#07130d;
+color:white;
+min-height:100vh;
+text-align:center;
+overflow:hidden
+}
+
+.screen{
+display:none;
+min-height:100vh;
+padding:25px
+}
+
 .active{display:block}
-button{border:0;border-radius:12px;padding:14px 25px;margin:8px;background:#20d66b;color:#041008;font-size:17px;font-weight:bold;cursor:pointer}
-button:hover{background:#16b957}
-.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:500px;margin:30px auto}
-.level{background:#12251a;color:white;padding:25px 5px;border-radius:15px}
-.lock{opacity:.45}
-#game{position:relative;background:#159447;border:5px solid white;border-radius:15px;max-width:600px;height:65vh;margin:auto;overflow:hidden}
-.goal{position:absolute;top:10px;left:20%;width:60%;height:55px;border:5px solid white;background:#ffffff33}
-.ball{position:absolute;font-size:45px;bottom:45px;left:calc(50% - 23px);transition:.3s}
-.target{position:absolute;font-size:50px;top:100px;left:calc(50% - 25px)}
-.info{display:flex;justify-content:space-around;margin:10px;font-size:18px}
-#message{font-size:22px;margin:15px}
+
+h1{
+font-size:38px;
+margin:35px 0 15px
+}
+
+h2{margin:20px}
+
+button{
+border:0;
+border-radius:14px;
+padding:14px 22px;
+margin:7px;
+font-size:17px;
+font-weight:bold;
+background:#20d66b;
+color:#031008;
+cursor:pointer
+}
+
+button:active{
+transform:scale(.96)
+}
+
+.top{
+display:flex;
+justify-content:space-around;
+font-size:18px;
+margin:15px
+}
+
+.levels{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:8px;
+max-width:600px;
+margin:20px auto;
+max-height:65vh;
+overflow:auto
+}
+
+.level{
+padding:15px 5px;
+background:#12251a;
+color:white
+}
+
+.locked{
+opacity:.35
+}
+
+#field{
+position:relative;
+height:62vh;
+max-width:600px;
+margin:auto;
+background:#159447;
+border:5px solid white;
+border-radius:18px;
+overflow:hidden
+}
+
+.goal{
+position:absolute;
+top:15px;
+left:20%;
+width:60%;
+height:60px;
+border:5px solid white;
+font-size:35px
+}
+
+#ball{
+position:absolute;
+bottom:35px;
+left:calc(50% - 25px);
+font-size:50px;
+transition:.35s
+}
+
+#target{
+position:absolute;
+font-size:45px;
+transition:.2s
+}
+
+#msg{
+font-size:22px;
+margin:12px
+}
+
+#admin{
+text-align:center;
+max-width:600px;
+margin:auto
+}
+
+.adminbox{
+background:#12251a;
+padding:15px;
+border-radius:12px;
+margin:10px 0
+}
+
+input{
+padding:13px;
+border-radius:10px;
+border:0;
+margin:7px;
+font-size:16px
+}
 </style>
 </head>
 
 <body>
 
-<header>⚽ Soccer Levels</header>
+<!-- HAUPTMENÜ -->
+<section id="home" class="screen active">
 
-<!-- START -->
-<div id="home" class="screen active">
-<h1>Soccer Challenge</h1>
-<p style="margin:20px">Schieße den Ball ins Tor und schaffe alle Levels!</p>
-<button onclick="show('levels')">▶ Spielen</button>
-</div>
+<h1>⚽ Soccer Challenge</h1>
+
+<p>Schaffe alle 1000 Level!</p>
+
+<br>
+
+<button onclick="openLevels()">
+▶ Spielen
+</button>
+
+<br>
+
+<button onclick="openAdmin()">
+🔐 Admin
+</button>
+
+</section>
+
 
 <!-- LEVELAUSWAHL -->
-<div id="levels" class="screen">
-<h1>Level auswählen</h1>
-<div class="levels" id="levelList"></div>
-<button onclick="show('home')">⬅ Zurück</button>
-</div>
+<section id="levels" class="screen">
+
+<h2>🏆 Level auswählen</h2>
+
+<div id="levelList" class="levels"></div>
+
+<button onclick="show('home')">
+⬅ Menü
+</button>
+
+</section>
+
 
 <!-- SPIEL -->
-<div id="play" class="screen">
-<div class="info">
-<span>Level: <b id="lvl">1</b></span>
-<span>⚽ <b id="score">0</b></span>
-<span>⏱️ <b id="time">30</b></span>
+<section id="gameScreen" class="screen">
+
+<div class="top">
+
+<span>
+Level <b id="levelText">1</b>
+</span>
+
+<span>
+⚽ <b id="score">0</b>
+</span>
+
+<span>
+⏱️ <b id="time">30</b>
+</span>
+
 </div>
 
-<div id="game">
-<div class="goal">🥅</div>
-<div class="target" id="target">🎯</div>
-<div class="ball" id="ball">⚽</div>
+
+<div id="field">
+
+<div class="goal">
+🥅
 </div>
 
-<div id="message">Tippe auf den Ball!</div>
-<button onclick="kick()">⚽ SCHIESSEN</button>
-<button onclick="show('levels')">Level verlassen</button>
+<div id="target">
+🎯
 </div>
+
+<div id="ball">
+⚽
+</div>
+
+</div>
+
+
+<div id="msg">
+Schieße ins Ziel!
+</div>
+
+
+<button onclick="shoot()">
+⚽ SCHIESSEN
+</button>
+
+<button onclick="show('levels')">
+⬅ Level
+</button>
+
+</section>
+
+
+<!-- ADMIN PANEL -->
+<section id="admin" class="screen">
+
+<h2>🔐 Admin Panel</h2>
+
+
+<div id="login">
+
+<input
+id="password"
+type="password"
+placeholder="Admin-Passwort"
+>
+
+<br>
+
+<button onclick="login()">
+Einloggen
+</button>
+
+</div>
+
+
+<div id="adminContent" style="display:none">
+
+<div class="adminbox">
+
+<h3>📊 Spielstatistik</h3>
+
+<p>
+Spieler: <b id="players">1</b>
+</p>
+
+<p>
+Aktuelles Level:
+<b id="adminLevel">1</b>
+</p>
+
+<p>
+Höchstes Level:
+<b id="maxLevel">1</b>
+</p>
+
+</div>
+
+
+<div class="adminbox">
+
+<h3>⚙️ Einstellungen</h3>
+
+<button onclick="resetGame()">
+Spielstand zurücksetzen
+</button>
+
+<br>
+
+<button onclick="show('home')">
+⬅ Menü
+</button>
+
+</div>
+
+</div>
+
+</section>
+
 
 <script>
-const maxLevels=12;
-let current=1,score=0,time=30,timer=null,playing=false;
+
+/* =========================
+   EINSTELLUNGEN
+========================= */
+
+const MAX_LEVEL = 1000;
+
+/* ADMIN PASSWORT */
+
+const ADMIN_PASSWORD = "1233";
+
+
+/* =========================
+   SPIELDATEN
+========================= */
+
+let level =
+Number(localStorage.getItem("level") || 1);
+
+let score = 0;
+
+let time = 30;
+
+let timer = null;
+
+let playing = false;
+
+
+/* =========================
+   KURZ-FUNKTION
+========================= */
+
+const $ = id =>
+document.getElementById(id);
+
+
+/* =========================
+   SCREEN WECHSELN
+========================= */
 
 function show(id){
- document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- if(id==='levels')createLevels();
- if(id!=='play')stopTimer();
+
+document
+.querySelectorAll(".screen")
+.forEach(x =>
+x.classList.remove("active")
+);
+
+$(id).classList.add("active");
+
+if(id !== "gameScreen"){
+
+clearInterval(timer);
+
+playing = false;
+
 }
 
-function createLevels(){
- const box=document.getElementById('levelList');
- box.innerHTML='';
- for(let i=1;i<=maxLevels;i++){
-  const b=document.createElement('button');
-  b.className='level';
-  b.textContent='Level '+i;
-  b.onclick=()=>start(i);
-  box.appendChild(b);
- }
 }
 
-function start(level){
- current=level;
- score=0;
- time=Math.max(10,35-level*2);
- document.getElementById('lvl').textContent=current;
- document.getElementById('score').textContent=score;
- document.getElementById('time').textContent=time;
- document.getElementById('message').textContent='Tippe auf SCHIESSEN!';
- show('play');
- playing=true;
- moveTarget();
- stopTimer();
- timer=setInterval(()=>{
-  if(!playing)return;
-  time--;
-  document.getElementById('time').textContent=time;
-  if(time<=0)end(false);
- },1000);
-}
 
-function moveTarget(){
- const t=document.getElementById('target');
- const x=10+Math.random()*80;
- const y=80+Math.random()*45;
- t.style.left=x+'%';
- t.style.top=y+'px';
-}
+/* =========================
+   LEVEL ÖFFNEN
+========================= */
 
-function kick(){
- if(!playing)return;
+function openLevels(){
 
- const target=document.getElementById('target');
- const ball=document.getElementById('ball');
-
- ball.style.bottom='75%';
-
- setTimeout(()=>{
-  const hit=Math.random() < Math.max(.45,.85-current*.025);
-
-  if(hit){
-   score++;
-   document.getElementById('score').textContent=score;
-   document.getElementById('message').textContent='⚽ TOR!';
-   if(score>=3+Math.floor(current/3)){
-    end(true);
-   }else{
-    moveTarget();
-    ball.style.bottom='45px';
-   }
-  }else{
-   document.getElementById('message').textContent='❌ Daneben!';
-   ball.style.bottom='45px';
-  }
- },350);
-}
-
-function end(win){
- playing=false;
- stopTimer();
- if(win){
-  document.getElementById('message').textContent='🏆 Level geschafft!';
-  setTimeout(()=>{
-   if(current<maxLevels)start(current+1);
-   else{
-    alert('🎉 Alle 12 Level geschafft!');
-    show('levels');
-   }
-  },1000);
- }else{
-  document.getElementById('message').textContent='⏰ Zeit abgelaufen!';
- }
-}
-
-function stopTimer(){
- if(timer){
-  clearInterval(timer);
-  timer=null;
- }
-}
+show("levels");
 
 createLevels();
 
-/* Fullscreen bei App-Nutzung */
-document.addEventListener('click',()=>{
- if(document.documentElement.requestFullscreen &&
-    !document.fullscreenElement){
-  document.documentElement.requestFullscreen().catch(()=>{});
- }
-},{once:true});
+}
+
+
+/* =========================
+   1000 LEVEL ERSTELLEN
+========================= */
+
+function createLevels(){
+
+let box = $("levelList");
+
+box.innerHTML = "";
+
+
+for(let i = 1; i <= MAX_LEVEL; i++){
+
+let b =
+document.createElement("button");
+
+b.className = "level";
+
+
+if(i > level){
+
+b.classList.add("locked");
+
+b.textContent = "🔒 " + i;
+
+b.disabled = true;
+
+}else{
+
+b.textContent = "⚽ " + i;
+
+b.onclick = () =>
+startLevel(i);
+
+}
+
+box.appendChild(b);
+
+}
+
+}
+
+
+/* =========================
+   LEVEL STARTEN
+========================= */
+
+function startLevel(l){
+
+level = l;
+
+score = 0;
+
+/* Je höher das Level,
+   desto weniger Zeit */
+
+time =
+Math.max(
+8,
+32 - Math.floor(l / 50)
+);
+
+
+$("levelText").textContent =
+level;
+
+$("score").textContent =
+score;
+
+$("time").textContent =
+time;
+
+$("msg").textContent =
+"Schieße ins Ziel!";
+
+
+show("gameScreen");
+
+playing = true;
+
+moveTarget();
+
+clearInterval(timer);
+
+
+timer = setInterval(() => {
+
+if(!playing) return;
+
+time--;
+
+$("time").textContent =
+time;
+
+
+if(time <= 0){
+
+lose();
+
+}
+
+},1000);
+
+}
+
+
+/* =========================
+   ZIEL BEWEGEN
+========================= */
+
+function moveTarget(){
+
+let target =
+$("target");
+
+target.style.left =
+(5 + Math.random() * 80) + "%";
+
+target.style.top =
+(80 + Math.random() * 180) + "px";
+
+}
+
+
+/* =========================
+   SCHUSS
+========================= */
+
+function shoot(){
+
+if(!playing) return;
+
+let ball =
+$("ball");
+
+
+ball.style.bottom =
+"70%";
+
+
+setTimeout(() => {
+
+let chance =
+Math.max(
+.35,
+.85 - level / 1500
+);
+
+
+if(Math.random() < chance){
+
+score++;
+
+$("score").textContent =
+score;
+
+$("msg").textContent =
+"⚽ TOR!";
+
+
+/* Je 250 Level
+   wird es schwieriger */
+
+let needed =
+Math.min(
+3,
+1 + Math.floor(level / 250)
+);
+
+
+if(score >= needed){
+
+win();
+
+}else{
+
+moveTarget();
+
+ball.style.bottom =
+"35px";
+
+}
+
+}else{
+
+$("msg").textContent =
+"❌ Daneben!";
+
+ball.style.bottom =
+"35px";
+
+}
+
+},350);
+
+}
+
+
+/* =========================
+   LEVEL GESCHAFFT
+========================= */
+
+function win(){
+
+playing = false;
+
+clearInterval(timer);
+
+
+if(level < MAX_LEVEL){
+
+level++;
+
+localStorage.setItem(
+"level",
+level
+);
+
+$("msg").textContent =
+"🏆 Level geschafft!";
+
+
+setTimeout(() => {
+
+startLevel(level);
+
+},900);
+
+}else{
+
+$("msg").textContent =
+"👑 ALLE 1000 LEVEL GESCHAFFT!";
+
+}
+
+}
+
+
+/* =========================
+   VERLOREN
+========================= */
+
+function lose(){
+
+playing = false;
+
+clearInterval(timer);
+
+$("msg").textContent =
+"⏰ Zeit abgelaufen!";
+
+}
+
+
+/* =========================
+   ADMIN ÖFFNEN
+========================= */
+
+function openAdmin(){
+
+show("admin");
+
+}
+
+
+/* =========================
+   ADMIN LOGIN
+========================= */
+
+function login(){
+
+let password =
+$("password").value;
+
+
+if(password === ADMIN_PASSWORD){
+
+$("login").style.display =
+"none";
+
+$("adminContent").style.display =
+"block";
+
+
+$("adminLevel").textContent =
+level;
+
+$("maxLevel").textContent =
+localStorage.getItem("level") || 1;
+
+
+}else{
+
+alert(
+"❌ Falsches Admin-Passwort"
+);
+
+}
+
+}
+
+
+/* =========================
+   SPIELSTAND LÖSCHEN
+========================= */
+
+function resetGame(){
+
+if(confirm(
+"Spielstand wirklich löschen?"
+)){
+
+localStorage.removeItem(
+"level"
+);
+
+level = 1;
+
+$("adminLevel").textContent =
+1;
+
+$("maxLevel").textContent =
+1;
+
+alert(
+"✅ Spielstand zurückgesetzt!"
+);
+
+}
+
+}
+
+
+/* =========================
+   PWA SERVICE WORKER
+========================= */
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register(
+"sw.js"
+);
+
+}
+
+
+/* =========================
+   FULLSCREEN
+========================= */
+
+function fullscreen(){
+
+if(
+document.documentElement.requestFullscreen &&
+!document.fullscreenElement
+){
+
+document.documentElement
+.requestFullscreen()
+.catch(() => {});
+
+}
+
+}
+
+
+/* Beim ersten Tippen
+   Fullscreen versuchen */
+
+document.addEventListener(
+"click",
+fullscreen,
+{once:true}
+);
+
+
+/* =========================
+   START
+========================= */
+
+createLevels();
+
 </script>
 
 </body>
