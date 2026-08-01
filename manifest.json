@@ -1,0 +1,26 @@
+{
+  "name": "Soccer Draw",
+  "short_name": "Soccer Draw",
+  "description": "Zeichne deinen Schuss und triff das Tor!",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#075b2d",
+  "theme_color": "#087b39",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
