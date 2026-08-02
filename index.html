@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#06130c">
+<link rel="manifest" href="manifest.json">
+<title>Soccer Challenge</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    width:100%;
+    min-height:100%;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:
+        radial-gradient(circle at top,#123d25 0,#07150d 45%,#030a06 100%);
+    color:#fff;
+    overflow-x:hidden;
+    touch-action:manipulation;
+}
+
+.screen{
+    display:none;
+    min-height:100vh;
+    padding:20px;
+    animation:screenIn .25s ease;
+}
+
+.screen.active{
+    display:block;
+}
+
+@keyframes screenIn{
+    from{
+        opacity:0;
+        transform:translateY(12px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.container{
+    width:100%;
+    max-width:800px;
+    margin:auto;
+}
+
+.logo{
+    margin-top:50px;
+    text-align:center;
+}
+
+.logoBall{
+    font-size:70px;
+    filter:drop-shadow(0 8px 20px #000);
+    animation:ballFloat 2.5s infinite ease-in-out;
+}
+
+@keyframes ballFloat{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    50%{transform:translateY(-10px) rotate(8deg)}
+}
+
+h1{
+    font-size:42px;
+    margin-top:10px;
+    letter-spacing:-2px;
+}
+
+.subtitle{
+    color:#a9b9ae;
+    margin-top:8px;
+}
+
+.card{
+    background:rgba(15,35,23,.9);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    padding:20px;
+    margin:18px auto;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+button{
+    appearance:none;
+    border:0;
+    border-radius:15px;
+    padding:15px 22px;
+    margin:7px;
+    min-height:52px;
+    font-size:17px;
+    font-weight:800;
+    color:#031008;
+    background:#25df72;
+    cursor:pointer;
+    transition:
+        transform .12s ease,
+        filter .12s ease,
+        box-shadow .12s ease;
+    box-shadow:0 7px 20px rgba(37,223,114,.18);
+}
+
+button:active{
+    transform:scale(.92);
+    filter:brightness(.85);
+}
+
+button.secondary{
+    background:#183221;
+    color:#fff;
+    box-shadow:none;
+}
+
+button.danger{
+    background:#e53935;
+    color:#fff;
+}
+
+button.gold{
+    background:#ffc928;
+}
+
+button.full{
+    width:100%;
+    margin:7px 0;
+}
+
+input{
+    width:100%;
+    padding:15px;
+    margin:7px 0;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    background:#07150d;
+    color:#fff;
+    outline:none;
+    font-size:16px;
+}
+
+input:focus{
+    border-color:#25df72;
+}
+
+.menuButtons{
+    max-width:430px;
+    margin:30px auto;
+}
+
+.menuButtons button{
+    width:100%;
+    margin:8px 0;
+}
+
+.status{
+    text-align:center;
+    color:#8c9a91;
+    margin-top:15px;
+    font-size:14px;
+}
+
+/* LEVELS */
+
+.levelHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:15px;
+}
+
+.levelHeader h2{
+    font-size:28px;
+}
+
+.levels{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:9px;
+    max-height:68vh;
+    overflow-y:auto;
+    padding:4px;
+}
+
+.level{
+    margin:0;
+    min-height:62px;
+    padding:8px 4px;
+    background:#10251a;
+    color:#fff;
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:none;
+}
+
+.level.unlocked{
+    background:#1c7d46;
+}
+
+.level.current{
+    outline:3px solid #25df72;
+}
+
+.level.locked{
+    opacity:.3;
+}
+
+/* GAME */
+
+.gameTop{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.stat{
+    background:#10251a;
+    border-radius:15px;
+    padding:12px 5px;
+    font-size:14px;
+}
+
+.stat b{
+    display:block;
+    font-size:21px;
+    margin-top:3px;
+}
+
+#field{
+    position:relative;
+    width:100%;
+    max-width:760px;
+    height:min(68vh,650px);
+    min-height:420px;
+    margin:auto;
+    overflow:hidden;
+    border:4px solid rgba(255,255,255,.9);
+    border-radius:24px;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #159447 0,
+            #159447 55px,
+            #12823f 55px,
+            #12823f 110px
+        );
+    box-shadow:
+        inset 0 0 50px rgba(0,0,0,.25),
+        0 20px 50px rgba(0,0,0,.3);
+}
+
+.fieldLine{
+    position:absolute;
+    left:50%;
+    top:0;
+    width:2px;
+    height:100%;
+    background:rgba(255,255,255,.45);
+}
+
+.centerCircle{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:110px;
+    height:110px;
+    transform:translate(-50%,-50%);
+    border:2px solid rgba(255,255,255,.5);
+    border-radius:50%;
+}
+
+#goal{
+    position:absolute;
+    right:-2px;
+    top:34%;
+    width:85px;
+    height:32%;
+    border:5px solid #fff;
+    border-right:0;
+    border-radius:15px 0 0 15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+    background:rgba(255,255,255,.08);
+    z-index:2;
+}
+
+#ball{
+    position:absolute;
+    left:22px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:45px;
+    z-index:5;
+    filter:drop-shadow(0 5px 5px rgba(0,0,0,.4));
+}
+
+#gameCanvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:20;
+    touch-action:none;
+}
+
+.obstacle{
+    position:absolute;
+    z-index:4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#29332d;
+    border:3px solid #111;
+    border-radius:9px;
+    box-shadow:0 5px 10px rgba(0,0,0,.4);
+}
+
+.message{
+    text-align:center;
+    min-height:28px;
+    margin:12px 0;
+    font-size:17px;
+    font-weight:bold;
+}
+
+/* SETTINGS */
+
+.settingRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    padding:15px 0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.settingRow:last-child{
+    border-bottom:0;
+}
+
+.settingText{
+    text-align:left;
+}
+
+.settingText b{
+    display:block;
+    margin-bottom:4px;
+}
+
+.settingText span{
+    color:#8f9d94;
+    font-size:13px;
+}
+
+/* ADMIN */
+
+.adminBox{
+    background:rgba(15,35,23,.95);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:17px;
+    margin:12px auto;
+}
+
+.adminBox h3{
+    margin-bottom:10px;
+}
+
+.player{
+    background:#091910;
+    border-radius:15px;
+    padding:15px;
+    margin:10px 0;
+    border:1px solid rgba(255,255,255,.06);
+}
+
+.playerButtons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:10px;
+}
+
+.playerButtons button{
+    margin:0;
+    min-height:42px;
+    padding:9px 12px;
+    font-size:13px;
+}
+
+.online{
+    color:#25df72;
+}
+
+.blocked{
+    color:#ff5353;
+}
+
+/* ANNOUNCEMENT */
+
+.announcement{
+    background:linear-gradient(135deg,#1c6e41,#103521);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;
+    padding:16px;
+    margin:15px auto;
+    max-width:700px;
+    text-align:left;
+}
+
+.announcementTitle{
+    font-weight:900;
+    font-size:18px;
+    margin-bottom:6px;
+}
+
+.announcementText{
+    color:#d8e5dc;
+    line-height:1.4;
+}
+
+.hidden{
+    display:none!important;
+}
+
+@media(max-width:500px){
+    h1{
+        font-size:35px;
+    }
+
+    .levels{
+        grid-template-columns:repeat(4,1fr);
+    }
+
+    #field{
+        height:60vh;
+        min-height:390px;
+    }
+
+    button{
+        font-size:16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= HOME ================= -->
+
+<section id="home" class="screen active">
+<div class="container">
+
+<div class="logo">
+    <div class="logoBall">⚽</div>
+    <h1>Soccer Challenge</h1>
+    <p class="subtitle">Schaffe alle 1000 Level.</p>
+</div>
+
+<div id="globalAnnouncement" class="announcement hidden">
+    <div class="announcementTitle" id="announcementTitle"></div>
+    <div class="announcementText" id="announcementText"></div>
+</div>
+
+<div class="menuButtons">
+
+    <button id="playButton">
+        ▶ Spielen
+    </button>
+
+    <button id="settingsButton" class="secondary">
+        ⚙ Einstellungen
+    </button>
+
+    <button id="adminButton" class="secondary">
+        🔐 Admin
+    </button>
+
+</div>
+
+<div class="status" id="loginStatus">
+    Nicht als Admin angemeldet
+</div>
+
+</div>
+</section>
+
+
+<!-- ================= LEVELS ================= -->
+
+<section id="levels" class="screen">
+<div class="container">
+
+<div class="levelHeader">
+    <h2>Level</h2>
+    <button id="levelsBackButton" class="secondary">Zurück</button>
+</div>
+
+<div class="card">
+    <p>Dein Fortschritt: <b id="progressText">Level 1</b></p>
+</div>
+
+<div id="levelList" class="levels"></div>
+
+</div>
+</section>
+
+
+<!-- ================= GAME ================= -->
+
+<section id="gameScreen" class="screen">
+<div class="container">
+
+<div class="gameTop">
+
+<div class="stat">
+    LEVEL
+    <b id="levelText">1</b>
+</div>
+
+<div class="stat">
+    TORE
+    <b id="score">0</b>
+</div>
+
+<div class="stat">
+    ZEIT
+    <b id="time">30</b>
+</div>
+
+</div>
+
+<div id="field">
+
+    <div class="fieldLine"></div>
+    <div class="centerCircle"></div>
+
+    <div id="goal">🥅</div>
+    <div id="ball">⚽</div>
+
+    <canvas id="gameCanvas"></canvas>
+
+</div>
+
+<div id="message" class="message">
+    Zeichne eine Linie zum Tor.
+</div>
+
+<div style="text-align:center">
+    <button id="resetButton" class="secondary">
+        ↻ Neu
+    </button>
+
+    <button id="gameLevelsButton" class="secondary">
+        Level
+    </button>
+</div>
+
+</div>
+</section>
+
+
+<!-- ================= SETTINGS ================= -->
+
+<section id="settings" class="screen">
+<div class="container">
+
+<div class="levelHeader">
+    <h2>Einstellungen</h2>
+    <button id="settingsBackButton" class="secondary">Zurück</button>
+</div>
+
+<div class="card">
+
+<div class="settingRow">
+    <div class="settingText">
+        <b>Spieler-ID</b>
+        <span>Deine eindeutige ID</span>
+    </div>
+</div>
+
+<input id="playerIdInput" readonly>
+
+<div class="settingRow">
+    <div class="settingText">
+        <b>Spielstand</b>
+        <span>Dein aktuelles Level</span>
+    </div>
+
+    <b id="settingsLevel">1</b>
+</div>
+
+<div class="settingRow">
+    <div class="settingText">
+        <b>Online-Speicherung</b>
+        <span>Spielstand wird gespeichert</span>
+    </div>
+
+    <b class="online">AKTIV</b>
+</div>
+
+</div>
+
+<button id="copyIdButton" class="full">
+    ID kopieren
+</button>
+
+<button id="settingsHomeButton" class="secondary full">
+    Zum Hauptmenü
+</button>
+
+</div>
+</section>
+
+
+<!-- ================= LOGIN ================= -->
+
+<section id="loginScreen" class="screen">
+<div class="container">
+
+<div class="card">
+
+<h2 style="margin-bottom:15px">
+Admin Login
+</h2>
+
+<input
+    id="email"
+    type="email"
+    placeholder="E-Mail"
+    autocomplete="username"
+>
+
+<input
+    id="password"
+    type="password"
+    placeholder="Passwort"
+    autocomplete="current-password"
+>
+
+<button id="loginButton" class="full">
+    Einloggen
+</button>
+
+<p id="loginMessage" style="text-align:center;margin-top:10px"></p>
+
+</div>
+
+<button id="loginBackButton" class="secondary full">
+    Zurück
+</button>
+
+</div>
+</section>
+
+
+<!-- ================= ADMIN ================= -->
+
+<section id="admin" class="screen">
+<div class="container">
+
+<div class="levelHeader">
+    <h2>Admin Panel</h2>
+    <button id="adminHomeButton" class="secondary">Menü</button>
+</div>
+
+<div class="adminBox">
+
+<p>
+Status:
+<b class="online">● Admin aktiv</b>
+</p>
+
+<p style="margin-top:8px">
+Spieler:
+<b id="playerCount">0</b>
+</p>
+
+</div>
+
+
+<!-- GLOBAL ANNOUNCEMENT -->
+
+<div class="adminBox">
+
+<h3>Globale Nachricht</h3>
+
+<input
+    id="announcementTitleInput"
+    placeholder="Titel, z.B. Event"
+>
+
+<input
+    id="announcementTextInput"
+    placeholder="Nachricht für alle Spieler"
+>
+
+<button id="sendAnnouncementButton">
+    Globale Nachricht senden
+</button>
+
+<button id="deleteAnnouncementButton" class="danger">
+    Nachricht entfernen
+</button>
+
+</div>
+
+
+<!-- PLAYER SEARCH -->
+
+<div class="adminBox">
+
+<h3>Spieler verwalten</h3>
+
+<input
+    id="searchPlayer"
+    placeholder="Spieler-ID suchen..."
+>
+
+<div id="playerList">
+    Lade Spieler...
+</div>
+
+</div>
+
+
+<div style="text-align:center">
+
+<button id="refreshPlayersButton">
+    Aktualisieren
+</button>
+
+<button id="logoutButton" class="danger">
+    Ausloggen
+</button>
+
+</div>
+
+</div>
+</section>
+
+
+<script type="module">
+
+/* ================= FIREBASE ================= */
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    update,
+    remove,
+    onValue
+}
+from "https://www.gstatic.com/firebasejs/12.17.0/firebase-database.js";
+
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+}
+from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+    apiKey:"AIzaSyB9JbpYKnTvBRmIvG5g0s1K6SDeVnC2wi4",
+    authDomain:"soccergame-3e8e5.firebaseapp.com",
+    projectId:"soccergame-3e8e5",
+    storageBucket:"soccergame-3e8e5.firebasestorage.app",
+    messagingSenderId:"410350098489",
+    appId:"1:410350098489:web:b2f76518d8e55a51c395e8",
+    measurementId:"G-9X44KJK0P1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+const ADMIN_UID =
+"lotAq5DnKXVxKkiAlbNckrQTtHw1";
+
+
+/* ================= PLAYER ID ================= */
+
+let playerId =
+localStorage.getItem("soccerPlayerId");
+
+if(!playerId){
+
+    playerId =
+    "player_" +
+    crypto.randomUUID();
+
+    localStorage.setItem(
+        "soccerPlayerId",
+        playerId
+    );
+}
+
+
+/* ================= DATA ================= */
+
+const MAX_LEVEL = 1000;
+
+let level =
+Number(localStorage.getItem("level") || 1);
+
+let score = 0;
+let time = 30;
+let timer = null;
+
+let drawing = false;
+let points = [];
+
+let allPlayers = {};
+
+
+/* ================= ELEMENTE ================= */
+
+const $ = id =>
+document.getElementById(id);
+
+
+/* ================= SCREEN SYSTEM ================= */
+
+function showScreen(id){
+
+    document
+    .querySelectorAll(".screen")
+    .forEach(screen=>{
+        screen.classList.remove("active");
+    });
+
+    const screen = $(id);
+
+    if(screen){
+        screen.classList.add("active");
+    }
+
+    if(id !== "gameScreen"){
+        clearInterval(timer);
+    }
+
+    window.scrollTo(0,0);
+}
+
+
+/* ================= BUTTONS ================= */
+
+$("playButton").addEventListener("click",()=>{
+    createLevels();
+    showScreen("levels");
+});
+
+$("settingsButton").addEventListener("click",()=>{
+    $("playerIdInput").value = playerId;
+    $("settingsLevel").textContent = level;
+    showScreen("settings");
+});
+
+$("adminButton").addEventListener("click",()=>{
+    showScreen("loginScreen");
+});
+
+$("levelsBackButton").addEventListener("click",()=>{
+    showScreen("home");
+});
+
+$("settingsBackButton").addEventListener("click",()=>{
+    showScreen("home");
+});
+
+$("settingsHomeButton").addEventListener("click",()=>{
+    showScreen("home");
+});
+
+$("loginBackButton").addEventListener("click",()=>{
+    showScreen("home");
+});
+
+$("adminHomeButton").addEventListener("click",()=>{
+    showScreen("home");
+});
+
+$("gameLevelsButton").addEventListener("click",()=>{
+    clearInterval(timer);
+    createLevels();
+    showScreen("levels");
+});
+
+$("resetButton").addEventListener("click",()=>{
+    resetShot();
+});
+
+$("copyIdButton").addEventListener("click",async()=>{
+
+    try{
+
+        await navigator.clipboard.writeText(playerId);
+
+        $("copyIdButton").textContent =
+        "✓ Kopiert";
+
+        setTimeout(()=>{
+            $("copyIdButton").textContent =
+            "ID kopieren";
+        },1500);
+
+    }catch{
+
+        $("playerIdInput").select();
+        document.execCommand("copy");
+
+    }
+
+});
+
+
+/* ================= LEVELS ================= */
+
+function createLevels(){
+
+    const box = $("levelList");
+
+    box.innerHTML = "";
+
+    $("progressText").textContent =
+    "Level " + level;
+
+    for(let i=1;i<=MAX_LEVEL;i++){
+
+        const button =
+        document.createElement("button");
+
+        button.className = "level";
+
+        if(i <= level){
+
+            button.classList.add("unlocked");
+
+            if(i === level){
+                button.classList.add("current");
+            }
+
+            button.textContent =
+            i === level
+            ? "▶ " + i
+            : i;
+
+            button.addEventListener(
+                "click",
+                ()=>startLevel(i)
+            );
+
+        }else{
+
+            button.classList.add("locked");
+
+            button.textContent =
+            "🔒 " + i;
+
+            button.disabled = true;
+        }
+
+        box.appendChild(button);
+    }
+}
+
+
+/* ================= START LEVEL ================= */
+
+function startLevel(selectedLevel){
+
+    level = selectedLevel;
+
+    score = 0;
+
+    time =
+    Math.max(
+        8,
+        35 - Math.floor(level / 40)
+    );
+
+    $("levelText").textContent = level;
+    $("score").textContent = score;
+    $("time").textContent = time;
+
+    $("message").textContent =
+    "Zeichne eine Linie zum Tor.";
+
+    showScreen("gameScreen");
+
+    createObstacles();
+    resetShot();
+
+    clearInterval(timer);
+
+    timer = setInterval(()=>{
+
+        time--;
+
+        $("time").textContent = time;
+
+        if(time <= 0){
+
+            clearInterval(timer);
+
+            $("message").textContent =
+            "Zeit abgelaufen.";
+
+        }
+
+    },1000);
+}
+
+
+/* ================= DIFFICULTY ================= */
+
+function getObstacleAmount(){
+
+    return Math.min(
+        18,
+        2 + Math.floor(level / 35)
+    );
+}
+
+
+/* ================= OBSTACLES ================= */
+
+function createObstacles(){
+
+    document
+    .querySelectorAll(".obstacle")
+    .forEach(x=>x.remove());
+
+    const amount =
+    getObstacleAmount();
+
+    for(let i=0;i<amount;i++){
+
+        const obstacle =
+        document.createElement("div");
+
+        obstacle.className =
+        "obstacle";
+
+        const size =
+        Math.min(
+            32 + level / 20,
+            55
+        );
+
+        obstacle.style.width =
+        size + "px";
+
+        obstacle.style.height =
+        size + "px";
+
+        obstacle.textContent =
+        level > 500
+        ? "🧱"
+        : "⬛";
+
+        obstacle.style.left =
+        (15 + Math.random()*68) + "%";
+
+        obstacle.style.top =
+        (7 + Math.random()*82) + "%";
+
+        field.appendChild(obstacle);
+    }
+}
+
+
+/* ================= CANVAS ================= */
+
+const field =
+$("field");
+
+const canvas =
+$("gameCanvas");
+
+const ctx =
+canvas.getContext("2d");
+
+function resizeCanvas(){
+
+    canvas.width =
+    field.clientWidth;
+
+    canvas.height =
+    field.clientHeight;
+}
+
+resizeCanvas();
+
+window.addEventListener(
+"resize",
+resizeCanvas
+);
+
+
+/* ================= DRAW POSITION ================= */
+
+function getPosition(event){
+
+    const rect =
+    canvas.getBoundingClientRect();
+
+    return {
+        x:event.clientX - rect.left,
+        y:event.clientY - rect.top
+    };
+}
+
+
+/* ================= DRAWING ================= */
+
+canvas.addEventListener(
+"pointerdown",
+event=>{
+
+    drawing = true;
+    points = [];
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    points.push(
+        getPosition(event)
+    );
+
+    try{
+        canvas.setPointerCapture(
+            event.pointerId
+        );
+    }catch{}
+
+    event.preventDefault();
+
+},
+{passive:false}
+);
+
+
+canvas.addEventListener(
+"pointermove",
+event=>{
+
+    if(!drawing)return;
+
+    points.push(
+        getPosition(event)
+    );
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    if(points.length < 2)return;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        points[0].x,
+        points[0].y
+    );
+
+    for(let i=1;i<points.length;i++){
+
+        ctx.lineTo(
+            points[i].x,
+            points[i].y
+        );
+    }
+
+    ctx.strokeStyle =
+    "#ffffff";
+
+    ctx.lineWidth =
+    Math.max(
+        5,
+        9 - level/200
+    );
+
+    ctx.lineCap =
+    "round";
+
+    ctx.lineJoin =
+    "round";
+
+    ctx.stroke();
+
+    event.preventDefault();
+
+},
+{passive:false}
+);
+
+
+canvas.addEventListener(
+"pointerup",
+event=>{
+
+    if(!drawing)return;
+
+    drawing = false;
+
+    try{
+        canvas.releasePointerCapt
