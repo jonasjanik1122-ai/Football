@@ -1,0 +1,1097 @@
+<!DOCTYPE html><html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07140d">
+<link rel="manifest" href="manifest.json">
+<title>Soccer Challenge</title><style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    -webkit-tap-highlight-color:transparent;
+}
+
+:root{
+    --bg:#06110b;
+    --card:#10251a;
+    --card2:#15321f;
+    --green:#25e879;
+    --green2:#13b85a;
+    --white:#fff;
+    --muted:#91aa9a;
+    --red:#ff4f5d;
+    --yellow:#ffd84d;
+    --blue:#4da3ff;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:
+        radial-gradient(circle at 50% -10%,#18512f 0,#07140d 45%,#030806 100%);
+    color:white;
+    min-height:100vh;
+    overflow:hidden;
+    touch-action:manipulation;
+}
+
+button,input{
+    font:inherit;
+}
+
+button{
+    border:0;
+    cursor:pointer;
+}
+
+.screen{
+    display:none;
+    width:100%;
+    min-height:100vh;
+    padding:18px;
+    overflow-y:auto;
+}
+
+.screen.active{
+    display:block;
+}
+
+.container{
+    width:100%;
+    max-width:720px;
+    margin:auto;
+}
+
+.logo{
+    width:90px;
+    height:90px;
+    margin:35px auto 18px;
+    border-radius:27px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(145deg,#2cf27f,#0ca64f);
+    box-shadow:0 15px 45px rgba(37,232,121,.25);
+    font-size:48px;
+    animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-7px)}
+}
+
+.title{
+    text-align:center;
+    font-size:42px;
+    font-weight:900;
+    letter-spacing:-2px;
+}
+
+.subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin-top:8px;
+}
+
+.menu{
+    max-width:420px;
+    margin:35px auto;
+}
+
+.mainButton{
+    width:100%;
+    padding:17px;
+    margin:6px 0;
+    border-radius:18px;
+    background:linear-gradient(135deg,var(--green),var(--green2));
+    color:#031008;
+    font-weight:900;
+    box-shadow:0 8px 25px rgba(37,232,121,.18);
+}
+
+.secondaryButton{
+    width:100%;
+    padding:15px;
+    margin:6px 0;
+    border-radius:17px;
+    background:#12291c;
+    color:white;
+}
+
+.dangerButton{
+    background:#3b1519;
+    color:#ff6872;
+}
+
+.header{
+    max-width:720px;
+    margin:5px auto 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.header h2{
+    font-size:27px;
+}
+
+.back{
+    background:#12291c;
+    color:white;
+    border-radius:13px;
+    padding:10px 15px;
+}
+
+.card{
+    max-width:720px;
+    margin:12px auto;
+    padding:18px;
+    background:linear-gradient(145deg,#10251a,#0b1c12);
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,.05);
+}
+
+.cardTitle{
+    font-size:18px;
+    font-weight:900;
+    margin-bottom:12px;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin:5px 0;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.08);
+    background:#07130d;
+    color:white;
+    outline:none;
+}
+
+input:focus{
+    border-color:var(--green);
+}
+
+/* LEVELS */
+
+.progressBox{
+    max-width:720px;
+    margin:auto auto 18px;
+    background:#10251a;
+    padding:15px;
+    border-radius:18px;
+}
+
+.progressText{
+    display:flex;
+    justify-content:space-between;
+    color:#a8bcae;
+    font-size:13px;
+    margin-bottom:8px;
+}
+
+.progress{
+    height:8px;
+    background:#07130d;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progressFill{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#25e879,#70ffad);
+    transition:.4s;
+}
+
+.levelGrid{
+    max-width:720px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:9px;
+}
+
+.levelButton{
+    min-height:70px;
+    border-radius:17px;
+    background:#10251a;
+    color:white;
+    border:1px solid rgba(255,255,255,.05);
+    font-weight:900;
+}
+
+.levelButton.unlocked{
+    background:linear-gradient(145deg,#163c26,#0d2417);
+}
+
+.levelButton.current{
+    outline:2px solid var(--green);
+}
+
+.levelButton.locked{
+    opacity:.35;
+}
+
+.levelNumber{
+    display:block;
+    font-size:18px;
+}
+
+.stars{
+    color:var(--yellow);
+    font-size:11px;
+}
+
+/* GAME */
+
+.gameHeader{
+    max-width:720px;
+    margin:auto auto 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.levelName{
+    font-size:21px;
+    font-weight:900;
+}
+
+.difficulty{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:3px;
+}
+
+.topbar{
+    max-width:720px;
+    margin:auto auto 10px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.stat{
+    padding:11px;
+    border-radius:15px;
+    background:#10251a;
+    text-align:center;
+}
+
+.stat small{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.stat b{
+    font-size:19px;
+}
+
+#field{
+    position:relative;
+    width:100%;
+    max-width:720px;
+    height:min(68vh,620px);
+    margin:auto;
+    overflow:hidden;
+    border:3px solid rgba(255,255,255,.8);
+    border-radius:25px;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #159849 0,
+            #159849 48px,
+            #12843f 48px,
+            #12843f 96px
+        );
+    box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+#field:before{
+    content:"";
+    position:absolute;
+    inset:7% 9%;
+    border:2px solid rgba(255,255,255,.55);
+    pointer-events:none;
+}
+
+#field:after{
+    content:"";
+    position:absolute;
+    width:90px;
+    height:90px;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    border:2px solid rgba(255,255,255,.5);
+    border-radius:50%;
+    pointer-events:none;
+}
+
+#goal{
+    position:absolute;
+    right:-4px;
+    top:34%;
+    width:82px;
+    height:32%;
+    border:5px solid white;
+    border-right:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    z-index:5;
+}
+
+#ball{
+    position:absolute;
+    left:24px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:43px;
+    z-index:7;
+}
+
+#line{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:20;
+    touch-action:none;
+}
+
+.obstacle{
+    position:absolute;
+    width:43px;
+    height:43px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:31px;
+    z-index:8;
+    filter:drop-shadow(0 5px 5px rgba(0,0,0,.3));
+}
+
+.movingObstacle{
+    animation:moveObstacle var(--speed) ease-in-out infinite alternate;
+}
+
+@keyframes moveObstacle{
+    from{transform:translateX(-25px)}
+    to{transform:translateX(25px)}
+}
+
+.gameMessage{
+    max-width:720px;
+    min-height:30px;
+    margin:11px auto;
+    text-align:center;
+    font-weight:700;
+}
+
+.gameButtons{
+    max-width:720px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.gameButton{
+    padding:14px;
+    border-radius:15px;
+    background:#12291c;
+    color:white;
+}
+
+.gameButton.primary{
+    background:var(--green);
+    color:#031008;
+}
+
+/* GLOBAL */
+
+.announcement{
+    max-width:720px;
+    margin:0 auto 12px;
+    padding:15px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#193d27,#10261a);
+    border:1px solid rgba(37,232,121,.2);
+}
+
+.announcementTitle{
+    font-weight:900;
+    margin-bottom:5px;
+}
+
+.announcementText{
+    color:#b7cabe;
+    line-height:1.4;
+}
+
+.event{
+    max-width:720px;
+    margin:0 auto 12px;
+    padding:16px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#332b0d,#171708);
+    border:1px solid rgba(255,216,77,.2);
+}
+
+.eventTitle{
+    color:var(--yellow);
+    font-weight:900;
+}
+
+.eventText{
+    color:#c9c59e;
+    margin-top:5px;
+}
+
+/* SETTINGS */
+
+.playerId{
+    padding:13px;
+    border-radius:12px;
+    background:#07130d;
+    color:#8dffba;
+    font-family:monospace;
+    word-break:break-all;
+}
+
+/* ADMIN */
+
+.adminTabs{
+    max-width:720px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:7px;
+}
+
+.adminTab{
+    padding:12px;
+    border-radius:13px;
+    background:#10251a;
+    color:#9db5a5;
+}
+
+.adminTab.active{
+    background:var(--green);
+    color:#031008;
+    font-weight:900;
+}
+
+.adminPanel{
+    display:none;
+}
+
+.adminPanel.active{
+    display:block;
+}
+
+.playerCard{
+    background:#0c1d13;
+    border-radius:17px;
+    padding:15px;
+    margin:9px 0;
+    border:1px solid rgba(255,255,255,.04);
+}
+
+.playerTop{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.playerIdSmall{
+    font-family:monospace;
+    font-size:12px;
+    word-break:break-all;
+}
+
+.badge{
+    height:max-content;
+    padding:5px 8px;
+    border-radius:8px;
+    font-size:10px;
+    font-weight:900;
+}
+
+.badge.green{
+    background:#123d24;
+    color:#5cff98;
+}
+
+.badge.red{
+    background:#42171c;
+    color:#ff6872;
+}
+
+.adminActions{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:7px;
+    margin-top:12px;
+}
+
+.adminButton{
+    padding:11px;
+    border-radius:12px;
+    background:#183322;
+    color:white;
+    font-size:13px;
+    font-weight:700;
+}
+
+.adminButton.red{
+    background:#3b151a;
+    color:#ff6973;
+}
+
+.adminButton.yellow{
+    background:#3c3210;
+    color:#ffe05e;
+}
+
+.adminButton.blue{
+    background:#112d46;
+    color:#62b7ff;
+}
+
+/* TOAST */
+
+#toast{
+    position:fixed;
+    left:50%;
+    bottom:20px;
+    transform:translate(-50%,20px);
+    padding:13px 17px;
+    border-radius:14px;
+    background:#10251a;
+    border:1px solid rgba(255,255,255,.08);
+    opacity:0;
+    pointer-events:none;
+    transition:.3s;
+    z-index:999;
+    max-width:90%;
+    text-align:center;
+}
+
+#toast.show{
+    opacity:1;
+    transform:translate(-50%,0);
+}
+
+@media(max-width:430px){
+
+    .title{
+        font-size:36px;
+    }
+
+    .logo{
+        width:80px;
+        height:80px;
+        font-size:42px;
+    }
+
+    #field{
+        height:62vh;
+        border-radius:20px;
+    }
+
+    .levelButton{
+        min-height:64px;
+    }
+}
+</style></head><body><!-- HOME --><section id="home" class="screen active"><div class="container"><div id="homeAnnouncement"></div>
+<div id="homeEvent"></div><div class="logo">⚽</div><div class="title">
+SOCCER
+</div><div class="subtitle">
+Challenge your skills.
+</div><div class="menu"><button class="mainButton" onclick="openLevels()">
+▶ SPIELEN
+</button><button class="secondaryButton" onclick="show('settings')">
+⚙ Einstellungen
+</button><button class="secondaryButton" onclick="openLogin()">
+🔐 Admin
+</button></div></div></section><!-- LEVELS --><section id="levels" class="screen"><div class="container"><div class="header"><button class="back" onclick="show('home')">
+‹
+</button><h2>Level</h2><div></div></div><div class="progressBox"><div class="progressText">
+<span>Fortschritt</span>
+<span id="progressText">1 / 1000</span>
+</div><div class="progress">
+<div id="progressFill" class="progressFill"></div>
+</div></div><div id="levelList" class="levelGrid"></div></div></section><!-- GAME --><section id="gameScreen" class="screen"><div class="container"><div id="gameAnnouncement"></div>
+<div id="gameEvent"></div><div class="gameHeader"><div><div class="levelName">
+Level <span id="levelText">1</span>
+</div><div id="difficulty" class="difficulty">
+Leicht
+</div></div><button class="back" onclick="show('levels')">
+✕
+</button></div><div class="topbar"><div class="stat">
+<small>Ziele</small>
+<b id="score">0</b>
+</div><div class="stat">
+<small>Sterne</small>
+<b id="stars">☆☆☆</b>
+</div><div class="stat">
+<small>Zeit</small>
+<b id="time">30</b>
+</div></div><div id="field"><div id="goal">🥅</div>
+<div id="ball">⚽</div><canvas id="line"></canvas>
+
+</div><div id="message" class="gameMessage">
+Zeichne eine Linie zum Tor!
+</div><div class="gameButtons"><button class="gameButton" onclick="resetShot()">
+↻ Neu
+</button><button class="gameButton primary" onclick="show('levels')">
+Level
+</button></div></div></section><!-- SETTINGS --><section id="settings" class="screen"><div class="container"><div class="header"><button class="back" onclick="show('home')">
+‹
+</button><h2>Einstellungen</h2><div></div></div><div class="card"><div class="cardTitle">
+Deine Spieler-ID
+</div><div id="settingsPlayerId" class="playerId">
+...
+</div><button class="secondaryButton" onclick="copyPlayerId()">
+ID kopieren
+</button></div><div class="card"><div class="cardTitle">
+Spielstand
+</div><p style="color:#9db5a5">
+Level:
+<b id="settingsLevel">1</b>
+</p><br><p style="color:#9db5a5">
+Punkte:
+<b id="settingsScore">0</b>
+</p></div></div></section><!-- LOGIN --><section id="loginScreen" class="screen"><div class="container"><div class="header"><button class="back" onclick="show('home')">
+‹
+</button><h2>Admin Login</h2><div></div></div><div class="card"><input
+id="email"
+type="email"
+placeholder="E-Mail"
+autocomplete="username">
+
+<input
+id="password"
+type="password"
+placeholder="Passwort"
+autocomplete="current-password">
+
+<button class="mainButton" onclick="login()">
+Einloggen
+</button><p
+id="loginMessage"
+style="text-align:center;margin-top:10px;color:#ff6670">
+</p></div></div></section><!-- ADMIN --><section id="admin" class="screen"><div class="container"><div class="header"><button class="back" onclick="logout()">
+‹
+</button><h2>Admin Panel</h2><div></div></div><div class="adminTabs"><button class="adminTab active"
+onclick="adminTab('players',this)">
+Spieler
+</button>
+
+<button class="adminTab"
+onclick="adminTab('news',this)">
+News
+</button>
+
+<button class="adminTab"
+onclick="adminTab('events',this)">
+Events
+</button>
+
+</div><!-- PLAYERS --><div id="adminPlayers" class="adminPanel active"><div class="card"><input
+id="searchPlayer"
+placeholder="Spieler-ID suchen..."
+oninput="filterPlayers()">
+
+</div><div id="playerList">
+Spieler werden geladen...
+</div></div><!-- NEWS --><div id="adminNews" class="adminPanel"><div class="card"><div class="cardTitle">
+Globale Ankündigung
+</div><input
+id="announcementTitle"
+placeholder="Titel">
+
+<input
+id="announcementText"
+placeholder="Nachricht">
+
+<button class="mainButton"
+onclick="sendAnnouncement()">
+📢 Global veröffentlichen
+</button>
+
+</div><div class="card"><div class="cardTitle">
+Aktuelle Ankündigung
+</div><div id="currentAnnouncement">
+Keine Ankündigung.
+</div><br><button class="adminButton red"
+onclick="deleteAnnouncement()">
+Ankündigung löschen
+</button>
+
+</div></div><!-- EVENTS --><div id="adminEvents" class="adminPanel"><div class="card"><div class="cardTitle">
+Globales Event
+</div><input
+id="eventTitle"
+placeholder="Event Name">
+
+<input
+id="eventText"
+placeholder="Beschreibung">
+
+<input
+id="eventMultiplier"
+type="number"
+min="1"
+value="2"
+placeholder="Punkte Multiplikator">
+
+<button class="mainButton"
+onclick="startGlobalEvent()">
+⚡ Event starten
+</button>
+
+</div><div class="card"><div class="cardTitle">
+Aktives Event
+</div><div id="currentEvent">
+Kein Event aktiv.
+</div><br><button class="adminButton red"
+onclick="stopGlobalEvent()">
+Event beenden
+</button>
+
+</div></div></div></section><div id="toast"></div><script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    update,
+    remove,
+    onValue
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-database.js";
+
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from "https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js";
+
+
+/* FIREBASE */
+
+const firebaseConfig={
+    apiKey:"AIzaSyB9JbpYKnTvBRmIvG5g0s1K6SDeVnC2wi4",
+    authDomain:"soccergame-3e8e5.firebaseapp.com",
+    projectId:"soccergame-3e8e5",
+    storageBucket:"soccergame-3e8e5.firebasestorage.app",
+    messagingSenderId:"410350098489",
+    appId:"1:410350098489:web:b2f76518d8e55a51c395e8",
+    measurementId:"G-9X44KJK0P1"
+};
+
+const app=initializeApp(firebaseConfig);
+
+const db=getDatabase(app);
+
+const auth=getAuth(app);
+
+
+/* ADMIN */
+
+const ADMIN_UID=
+"lotAq5DnKXVxKkiAlbNckrQTtHw1";
+
+
+/* PLAYER ID */
+
+let playerId=
+localStorage.getItem("soccerPlayerId");
+
+if(!playerId){
+
+    playerId=
+        "player_"+crypto.randomUUID();
+
+    localStorage.setItem(
+        "soccerPlayerId",
+        playerId
+    );
+}
+
+
+/* GAME */
+
+const MAX_LEVEL=1000;
+
+let level=
+    Number(
+        localStorage.getItem("level") || 1
+    );
+
+let score=0;
+
+let time=30;
+
+let timer=null;
+
+let drawing=false;
+
+let points=[];
+
+let allPlayers={};
+
+let currentAnnouncement=null;
+
+let currentEvent=null;
+
+
+/* ELEMENTS */
+
+const field=
+    document.getElementById("field");
+
+const canvas=
+    document.getElementById("line");
+
+const ctx=
+    canvas.getContext("2d");
+
+
+/* SCREEN */
+
+window.show=function(id){
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(function(screen){
+            screen.classList.remove("active");
+        });
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+    if(id!=="gameScreen"){
+        clearInterval(timer);
+    }
+
+    if(id==="levels"){
+        createLevels();
+    }
+
+    if(id==="settings"){
+        updateSettings();
+    }
+};
+
+
+window.openLevels=function(){
+    show("levels");
+};
+
+
+window.openLogin=function(){
+    show("loginScreen");
+};
+
+
+/* CANVAS */
+
+function resizeCanvas(){
+
+    canvas.width=
+        field.clientWidth;
+
+    canvas.height=
+        field.clientHeight;
+}
+
+resizeCanvas();
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+/* LEVELS */
+
+function createLevels(){
+
+    const list=
+        document.getElementById(
+            "levelList"
+        );
+
+    list.innerHTML="";
+
+    const percentage=
+        Math.min(
+            100,
+            (level/MAX_LEVEL)*100
+        );
+
+    document
+        .getElementById(
+            "progressFill"
+        )
+        .style.width=
+        percentage+"%";
+
+    document
+        .getElementById(
+            "progressText"
+        )
+        .textContent=
+        level+" / "+MAX_LEVEL;
+
+
+    for(
+        let i=1;
+        i<=MAX_LEVEL;
+        i++
+    ){
+
+        const button=
+            document.createElement(
+                "button"
+            );
+
+        button.className=
+            "levelButton";
+
+        const unlocked=
+            i<=level;
+
+        if(unlocked){
+
+            button.classList.add(
+                "unlocked"
+            );
+
+            button.onclick=
+                function(){
+                    startLevel(i);
+                };
+
+        }else{
+
+            button.classList.add(
+                "locked"
+            );
+
+            button.disabled=true;
+        }
+
+        if(i===level){
+            button.classList.add(
+                "current"
+            );
+        }
+
+        button.innerHTML=
+            '<span class="levelNumber">'+
+            (unlocked?"⚽ ":"🔒 ")+
+            i+
+            '</span>'+
+            '<span class="stars">'+
+            getStars(i)+
+            '</span>';
+
+        list.appendChild(button);
+    }
+}
+
+
+function getStars(levelNumber){
+
+    const saved=
+        Number(
+            localStorage.getItem(
+                "stars_"+levelNumber
+            ) || 0
+        );
+
+    return "★".repeat(saved)+
+           "☆".repeat(3-saved);
+}
+
+
+/* START LEVEL */
+
+function startLevel(number){
+
+    level=number;
+
+    score=0;
+
+    time=
+        Math.max(
+            7,
+            32-Math.floor(level/35)
+        );
+
+    document
+        .getElementById("levelText")
+        .textContent=level;
+
+    document
+        .getElementById("score")
+        .textContent=score;
+
+    document
+        .getElementById("time")
+        .textContent=time;
+
+    document
+        .getElementById("stars")
+        .textContent="☆☆☆";
+
+    document
+        .getElementById("difficulty")
+        .textContent=
+        getDifficulty(level);
+
+    document
+        .getElementById("message")
+        .textContent=
+        "Zeichne eine Linie zum Tor!";
+
+    show("gameScreen");
+
+    resizeCanvas();
+
+    createObstacles();
+
+    resetShot();
+
+    clearInterval(timer);
+
+    timer=
+        setInterval(
+            function(){
+
+                time--;
+
+                document
+                    .getElementById("time")
+                    .textContent=time;
+
+                if(time<=0){
+
+                    clearInterval(timer);
+
+    
